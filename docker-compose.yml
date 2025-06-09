@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  api:
+  app:
     build: .
     ports:
       - "8000:8000"
@@ -10,27 +10,32 @@ services:
       - REDIS_PORT=6379
       - GEMINI_API_KEY=AIzaSyCVBj8XTXuOkClPEk_HXSpk30nPxudRQGo
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     volumes:
       - .:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-
-  worker:
-    build: .
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - GEMINI_API_KEY=AIzaSyCVBj8XTXuOkClPEk_HXSpk30nPxudRQGo
-    depends_on:
-      - redis
-    volumes:
-      - .:/app
-    command: python worker.py
+    command: >
+      sh -c "python worker.py & uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   redis:
-    image: redis:latest
+    image: redis:7-alpine
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
 volumes:
   redis_data:

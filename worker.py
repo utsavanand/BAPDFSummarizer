@@ -109,25 +109,28 @@ def main():
 
     while True:
         try:
-            print("\nScanning all messages in stream...")
             # Get all messages in the stream
             all_messages = redis_client.xrange(TEXT_PROCESSING_STREAM, min='-', max='+')
-            print(f"Found {len(all_messages)} messages in stream.")
+            
+            # Track if we found any new messages to process
+            new_messages = False
+            
             for msg_id, msg_data in all_messages:
                 msg_id_str = msg_id.decode('utf-8') if isinstance(msg_id, bytes) else msg_id
                 summary_data = redis_client.hgetall(f"text_summary:{msg_id_str}")
                 status = summary_data.get(b'status', b'').decode('utf-8') if summary_data else None
                 
                 if status != 'completed':
+                    if not new_messages:
+                        print(f"\nFound new messages to process:")
+                        new_messages = True
                     print(f"Processing message {msg_id_str} (status: {status})")
                     try:
                         text = json.loads(msg_data[b'text'].decode('utf-8'))
                         process_text_job(msg_id_str, {'text': text})
                     except Exception as e:
                         print(f"❌ Error processing message {msg_id_str}: {str(e)}")
-                else:
-                    print(f"Skipping message {msg_id_str} (already completed)")
-            print("Sleeping for 5 seconds before next scan...")
+            
             time.sleep(5)
         except Exception as e:
             print(f"\n❌ Error in worker loop: {str(e)}")
