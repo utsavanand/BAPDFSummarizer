@@ -8,10 +8,10 @@ A FastAPI-based service that uses Google's Gemini AI to summarize PDF documents 
 
 ## Setup
 
-1. Clone the repository:
+1. Extract the zip file:
 ```bash
-git clone <repository-url>
-cd pdfsummarizer
+unzip BAPDFSummarizer.zip
+cd BAPDFSummarizer
 ```
 
 2. Start the application:
