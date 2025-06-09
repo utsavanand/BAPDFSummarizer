@@ -23,7 +23,9 @@ app = FastAPI(
     title="PDFSummarizer API",
     description="API for summarizing PDF documents and text using Google's Gemini AI",
     version="1.0.0",
-    openapi_url=f"{API_V1_STR}/openapi.json"
+    openapi_url=f"{API_V1_STR}/openapi.json",
+    docs_url=f"{API_V1_STR}/docs",
+    redoc_url=f"{API_V1_STR}/redoc"
 )
 
 # Redis connection
