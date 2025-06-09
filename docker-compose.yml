@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - GEMINI_API_KEY=AIzaSyCVBj8XTXuOkClPEk_HXSpk30nPxudRQGo
+    depends_on:
+      - redis
+    volumes:
+      - .:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  worker:
+    build: .
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - GEMINI_API_KEY=AIzaSyCVBj8XTXuOkClPEk_HXSpk30nPxudRQGo
+    depends_on:
+      - redis
+    volumes:
+      - .:/app
+    command: python worker.py
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+volumes:
+  redis_data:
+    driver: local 
